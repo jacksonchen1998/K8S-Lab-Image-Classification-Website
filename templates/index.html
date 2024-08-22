@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification Tools</title>
+    <style>
+       body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between; /* Distributes space evenly between items */
+            margin: 20px auto;
+            max-width: 1000px;
+            gap: 20px; /* Adjust gap between the image containers */
+        }
+
+        .image-container {
+            flex: 1; /* Allows the containers to grow and shrink as needed */
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        #upload-form {
+            text-align: center;
+            margin: 20px auto;
+        }
+
+        input[type="file"] {
+            margin: 10px auto;
+            display: block;
+            font-size: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button-group button:hover {
+            background-color: #0056b3;
+        }
+
+        .button-group button[type="reset"] {
+            background-color: #6c757d;
+        }
+
+        .button-group button[type="reset"]:hover {
+            background-color: #5a6268;
+        }
+
+        .button-group button[type="button"] {
+            background-color: #dc3545;
+        }
+
+        .button-group button[type="button"]:hover {
+            background-color: #c82333;
+        }
+
+        #choose-file-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #choose-file-btn:hover {
+            background-color: #218838;
+        }
+
+        #prediction-results {
+            max-width: 1000px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        #results-list {
+            list-style-type: none;
+            height: 300px; /* Fixed height */
+            padding: 0;
+            margin: 0;
+            overflow-y: auto; /* Enables scrolling */
+            border: 1px solid #ddd; /* Optional: Border around the list */
+            border-radius: 8px; /* Rounded corners */
+            background-color: #ffffff; /* White background */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for visual depth */
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            margin: 5px 0; /* Reduced margin for a compact look */
+            padding: 8px 12px; /* Reduced padding for a shorter height */
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            font-size: 14px; /* Smaller font size for compactness */
+        }
+
+        .result-item img {
+            width: 40px; /* Size of class icon */
+            height: 40px; /* Size of class icon */
+            margin-right: 10px; /* Spacing between icon and text */
+            border-radius: 5px;
+        }
+
+        .result-item div {
+            margin-right: 15px; /* Reduced margin for compactness */
+        }
+
+        .result-item .name {
+            flex: 1;
+        }
+
+        .result-item .bbox-count {
+            text-align: right;
+        }
+
+        .result-item .probability {
+            margin-left: 10px; /* Spacing between probability and other info */
+        }
+
+        .class-summary {
+            margin-bottom: 10px; /* Reduced gap between summary and results list */
+            background-color: white;
+            padding: 10px; /* Reduced padding */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+            font-size: 14px; /* Smaller font size for compactness */
+        }
+
+        .class-summary-item {
+            padding: 8px 0; /* Reduced padding for compactness */
+            border-bottom: 1px solid #ddd;
+        }
+
+        .class-summary-item:last-child {
+            border-bottom: none;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Upload Image for Inference</h1>
+
+    <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file-input" accept="image/*" required style="display: none;">
+        <div class="button-group">
+            <button type="button" id="choose-file-btn">Choose File</button>
+            <button type="submit">Upload and Inference</button>
+            <button type="reset">Reset</button>
+            <button type="button" onclick="window.location.href='/'">Cancel</button>
+        </div>
+    </form>    
+    
+
+    <div class="container">
+        <div class="image-container">
+            <h2>Original Image</h2>
+            <img id="original-image" src="static/ddd.jpeg" alt="Original Image">
+        </div>
+        <div class="image-container">
+            <h2>Predicted Image</h2>
+            <img id="predicted-image" src="static/ddd.jpeg" alt="Predicted Image">
+        </div>
+    </div>
+
+    <div id="prediction-results" class="container">
+        <div id="class-summary" class="class-summary"></div>
+        <div id="results-list"></div>
+    </div>
+    
+
+    <script>
+        const cocoClassNames = {
+            1: "person", 2: "bicycle", 3: "car", 4: "motorcycle", 5: "airplane",
+            6: "bus", 7: "train", 8: "truck", 9: "boat", 10: "traffic light",
+            11: "fire hydrant", 12: "stop sign", 13: "parking meter", 14: "bench",
+            15: "bird", 16: "cat", 17: "dog", 18: "horse", 19: "sheep", 20: "cow",
+            21: "elephant", 22: "bear", 23: "zebra", 24: "giraffe", 25: "backpack",
+            26: "umbrella", 27: "handbag", 28: "tie", 29: "suitcase", 30: "frisbee",
+            31: "skis", 32: "snowboard", 33: "sports ball", 34: "kite", 35: "baseball bat",
+            36: "baseball glove", 37: "skateboard", 38: "surfboard", 39: "tennis racket",
+            40: "bottle", 41: "wine glass", 42: "cup", 43: "fork", 44: "knife",
+            45: "spoon", 46: "bowl", 47: "banana", 48: "apple", 49: "sandwich",
+            50: "orange", 51: "broccoli", 52: "carrot", 53: "hot dog", 54: "pizza",
+            55: "donut", 56: "cake", 57: "chair", 58: "couch", 59: "potted plant",
+            60: "bed", 61: "dining table", 62: "toilet", 63: "TV", 64: "laptop",
+            65: "mouse", 66: "remote", 67: "keyboard", 68: "cell phone", 69: "microwave",
+            70: "oven", 71: "toaster", 72: "sink", 73: "refrigerator", 74: "book",
+            75: "clock", 76: "vase", 77: "scissors", 78: "teddy bear", 79: "hair drier",
+            80: "toothbrush"
+        };
+
+
+        document.getElementById('choose-file-btn').onclick = function() {
+            document.getElementById('file-input').click();
+        };
+
+        document.getElementById('upload-form').onsubmit = function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('original-image').src = data.original_image_url;
+                document.getElementById('predicted-image').src = data.predicted_image_url;
+
+                const resultsList = document.getElementById('results-list');
+                resultsList.innerHTML = '';
+
+                const classCounts = {};
+                let totalBoundingBoxes = 0;
+
+                data.results.forEach(result => {
+                    const className = cocoClassNames[result.label] || `Unknown (${result.label})`;
+                    const classIcon = `static/icons/${result.label}.jpg`; // Path to class icon image
+                    const listItem = document.createElement('div');
+                    listItem.className = 'result-item';
+
+                    listItem.innerHTML = `
+                        <img src="${classIcon}" alt="${className}" />
+                        <div class="name">${className}</div>
+                        <div class="probability">Probability: ${result.score.toFixed(2)}</div>
+                    `;
+                    resultsList.appendChild(listItem);
+
+                    // Update class count and total bounding boxes
+                    if (!classCounts[className]) {
+                        classCounts[className] = 0;
+                    }
+                    classCounts[className]++;
+                    totalBoundingBoxes++;
+                });
+
+                // Create and display summary
+                const summaryContainer = document.getElementById('class-summary');
+                summaryContainer.innerHTML = '<h2>Class Summary</h2>';
+                
+                for (const [className, count] of Object.entries(classCounts)) {
+                    const summaryItem = document.createElement('div');
+                    summaryItem.className = 'class-summary-item';
+                    summaryItem.innerHTML = `${className}: ${count}`;
+                    summaryContainer.appendChild(summaryItem);
+                }
+
+                const totalSummaryItem = document.createElement('div');
+                totalSummaryItem.className = 'class-summary-item';
+                totalSummaryItem.innerHTML = `Total Items: ${totalBoundingBoxes}`;
+                summaryContainer.appendChild(totalSummaryItem);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        };
+    </script>
+</body>
+</html>
